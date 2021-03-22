@@ -1,5 +1,14 @@
 # Change Log
 
+## 1.4.2
+
+### Patch Changes
+
+- Updated dependencies
+  [[`36252981a`](https://github.com/chakra-ui/chakra-ui/commit/36252981a6e38ed138b5f41e0d50d01a19b4b77c)]:
+  - @chakra-ui/system@1.5.2
+  - @chakra-ui/skeleton@1.1.7
+
 ## 1.4.1
 
 ### Patch Changes
