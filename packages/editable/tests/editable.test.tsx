@@ -6,7 +6,12 @@ import {
   userEvent,
 } from "@chakra-ui/test-utils"
 import * as React from "react"
-import { Editable, EditableInput, EditablePreview } from "../src"
+import {
+  Editable,
+  EditableInput,
+  EditableTextarea,
+  EditablePreview,
+} from "../src"
 
 test("matches snapshot", () => {
   render(
@@ -28,6 +33,7 @@ it("passes a11y test", async () => {
     <Editable defaultValue="testing">
       <EditablePreview data-testid="preview" />
       <EditableInput data-testid="input" />
+      <EditableTextarea data-testid="textarea" />
     </Editable>,
   )
 })
@@ -48,10 +54,12 @@ test("uncontrolled: handles callbacks correctly", async () => {
     >
       <EditablePreview data-testid="preview" />
       <EditableInput data-testid="input" />
+      <EditableTextarea data-testid="textarea" />
     </Editable>,
   )
   const preview = screen.getByTestId("preview")
   const input = screen.getByTestId("input")
+  const textarea = screen.getByTestId("textarea")
 
   // calls `onEdit` when preview is focused
   fireEvent.focus(preview)
@@ -61,8 +69,15 @@ test("uncontrolled: handles callbacks correctly", async () => {
   userEvent.type(input, "World")
   expect(onChange).toHaveBeenCalledWith("World")
 
+  userEvent.type(textarea, "World")
+  expect(onChange).toHaveBeenCalledWith("World")
+
   // calls `onCancel` with previous value when "esc" pressed
   fireEvent.keyDown(input, { key: "Escape" })
+  expect(onCancel).toHaveBeenCalledWith("Hello ")
+
+  // calls `onCancel` with previous value when "esc" pressed
+  fireEvent.keyDown(textarea, { key: "Escape" })
   expect(onCancel).toHaveBeenCalledWith("Hello ")
 
   fireEvent.focus(preview)
@@ -71,9 +86,15 @@ test("uncontrolled: handles callbacks correctly", async () => {
   userEvent.type(input, "World")
   expect(onChange).toHaveBeenCalledWith("World")
 
+  userEvent.type(textarea, "World")
+  expect(onChange).toHaveBeenCalledWith("World")
+
   // calls `onSubmit` with previous value when "enter" pressed after cancelling
   fireEvent.keyDown(input, { key: "Enter" })
   expect(onSubmit).toHaveBeenCalledWith("Hello World")
+
+  fireEvent.keyDown(textarea, { key: "Enter" })
+  expect(onSubmit).not.toHaveBeenCalledWith("Hello World")
 })
 
 test("controlled: handles callbacks correctly", () => {
@@ -97,6 +118,7 @@ test("controlled: handles callbacks correctly", () => {
       >
         <EditablePreview data-testid="preview" />
         <EditableInput data-testid="input" />
+        <EditableTextarea data-testid="textarea" />
       </Editable>
     )
   }
@@ -104,6 +126,7 @@ test("controlled: handles callbacks correctly", () => {
   render(<Component />)
   const preview = screen.getByTestId("preview")
   const input = screen.getByTestId("input")
+  const textarea = screen.getByTestId("textarea")
 
   // calls `onEdit` when preview is focused
   fireEvent.focus(preview)
@@ -115,11 +138,20 @@ test("controlled: handles callbacks correctly", () => {
   userEvent.type(input, "World")
   expect(onChange).toHaveBeenCalledWith("World")
 
+  userEvent.type(textarea, "World")
+  expect(onChange).toHaveBeenCalledWith("World")
+
   // calls `onSubmit` with `value`
   fireEvent.keyDown(input, { key: "Enter" })
   expect(onSubmit).toHaveBeenCalledWith("World")
 
+  fireEvent.keyDown(textarea, { key: "Enter" })
+  expect(onSubmit).toHaveBeenCalledWith("World")
+
   expect(input).not.toBeVisible()
+  fireEvent.focus(preview)
+
+  expect(textarea).not.toBeVisible()
   fireEvent.focus(preview)
 
   // update the input value
@@ -127,6 +159,15 @@ test("controlled: handles callbacks correctly", () => {
 
   // press `Escape`
   fireEvent.keyDown(input, { key: "Escape" })
+
+  // calls `onCancel` with previous `value`
+  expect(onSubmit).toHaveBeenCalledWith("World")
+
+  // update the input value
+  userEvent.type(textarea, "Rasengan")
+
+  // press `Escape`
+  fireEvent.keyDown(textarea, { key: "Escape" })
 
   // calls `onCancel` with previous `value`
   expect(onSubmit).toHaveBeenCalledWith("World")
@@ -167,36 +208,77 @@ test("handles preview and input callbacks", () => {
   expect(input).not.toBeVisible()
 })
 
+test("handles preview and textarea callbacks", () => {
+  const onFocus = jest.fn()
+  const onBlur = jest.fn()
+  const onChange = jest.fn()
+  const onKeyDown = jest.fn()
+
+  render(
+    <Editable defaultValue="Hello ">
+      <EditablePreview onFocus={onFocus} data-testid="preview" />
+      <EditableTextarea
+        onBlur={onBlur}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        data-testid="textarea"
+      />
+    </Editable>,
+  )
+  const preview = screen.getByTestId("preview")
+  const textarea = screen.getByTestId("textarea")
+
+  // calls `onFocus` when preview is focused
+  fireEvent.focus(preview)
+  expect(onFocus).toHaveBeenCalled()
+
+  // calls `onChange` when textarea is changed
+  userEvent.type(textarea, "World")
+  expect(onChange).toHaveBeenCalled()
+
+  // calls `onKeyDown` when key is pressed in textarea
+  fireEvent.keyDown(textarea, { key: "Escape" })
+  expect(onKeyDown).toHaveBeenCalled()
+
+  expect(textarea).not.toBeVisible()
+})
+
 test("has the proper aria attributes", () => {
   const { rerender } = render(
     <Editable defaultValue="">
       <EditablePreview data-testid="preview" />
       <EditableInput data-testid="input" />
+      <EditableTextarea data-testid="textarea" />
     </Editable>,
   )
   let preview = screen.getByTestId("preview")
   let input = screen.getByTestId("input")
+  let textarea = screen.getByTestId("textarea")
 
   // preview and input do not have aria-disabled when `Editable` is not disabled
   expect(preview).not.toHaveAttribute("aria-disabled")
   expect(input).not.toHaveAttribute("aria-disabled")
+  expect(textarea).not.toHaveAttribute("aria-disabled")
 
   rerender(
     <Editable isDisabled defaultValue="">
       <EditablePreview data-testid="preview" />
       <EditableInput data-testid="input" />
+      <EditableTextarea data-testid="textarea" />
     </Editable>,
   )
 
   preview = screen.getByTestId("preview")
   input = screen.getByTestId("input")
+  textarea = screen.getByTestId("textarea")
 
   // preview and input have aria-disabled when `Editable` is disabled
   expect(preview).toHaveAttribute("aria-disabled", "true")
   expect(input).toHaveAttribute("aria-disabled", "true")
+  expect(textarea).toHaveAttribute("aria-disabled", "true")
 })
 
-test("can submit on blur", () => {
+test("can submit on blur input", () => {
   const onSubmit = jest.fn()
 
   render(
@@ -209,5 +291,21 @@ test("can submit on blur", () => {
   const input = screen.getByTestId("input")
 
   fireEvent.blur(input)
+  expect(onSubmit).toHaveBeenCalledWith("testing")
+})
+
+test("can submit on blur textarea", () => {
+  const onSubmit = jest.fn()
+
+  render(
+    <Editable submitOnBlur onSubmit={onSubmit} defaultValue="testing">
+      <EditablePreview data-testid="preview" />
+      <EditableTextarea data-testid="textarea" />
+    </Editable>,
+  )
+
+  const textarea = screen.getByTestId("textarea")
+
+  fireEvent.blur(textarea)
   expect(onSubmit).toHaveBeenCalledWith("testing")
 })
