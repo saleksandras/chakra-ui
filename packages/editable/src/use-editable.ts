@@ -248,6 +248,22 @@ export function useEditable(props: UseEditableProps = {}) {
     [isDisabled, isEditing, onBlur, onChange, onKeyDown, placeholder, value],
   )
 
+  const getTextareaProps: PropGetter = useCallback(
+    (props = {}, ref = null) => ({
+      ...props,
+      hidden: !isEditing,
+      placeholder,
+      ref: mergeRefs(ref, inputRef),
+      disabled: isDisabled,
+      "aria-disabled": ariaAttr(isDisabled),
+      value,
+      onBlur: callAllHandlers(props.onBlur, onBlur),
+      onChange: callAllHandlers(props.onChange, onChange),
+      onKeyDown: callAllHandlers(props.onKeyDown, onKeyDown),
+    }),
+    [isDisabled, isEditing, onBlur, onChange, onKeyDown, placeholder, value],
+  )
+
   const getEditButtonProps: PropGetter = useCallback(
     (props = {}, ref = null) => ({
       "aria-label": "Edit",
@@ -292,6 +308,7 @@ export function useEditable(props: UseEditableProps = {}) {
     onSubmit,
     getPreviewProps,
     getInputProps,
+    getTextareaProps,
     getEditButtonProps,
     getSubmitButtonProps,
     getCancelButtonProps,
