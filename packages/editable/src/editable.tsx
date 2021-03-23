@@ -165,29 +165,62 @@ if (__DEV__) {
   EditableInput.displayName = "EditableInput"
 }
 
+/**
+ * EditableTextarePreview
+ *
+ * The `div` used to display the final value, in the `preview` mode
+ */
+export const EditableTextarePreview = forwardRef<EditablePreviewProps, "div">(
+  (props, ref) => {
+    const { getPreviewProps } = useEditableContext()
+    const styles = useStyles()
+
+    const previewProps = getPreviewProps(props, ref) as HTMLChakraProps<"div">
+    const _className = cx("chakra-editable__previewtextarea", props.className)
+
+    return (
+      <chakra.div
+        {...previewProps}
+        __css={{
+          cursor: "text",
+          display: "block",
+          ...commonStyles,
+          ...styles.preview,
+        }}
+        className={_className}
+      />
+    )
+  },
+)
+
+if (__DEV__) {
+  EditablePreview.displayName = "EditableTextarePreview"
+}
 
 export interface EditableTextareaProps extends HTMLChakraProps<"textarea"> {}
 
 /**
  * EditableTextarea
  *
- * The input used in the `edit` mode
+ * The textarea used in the `edit` mode
  */
 export const EditableTextarea = forwardRef<EditableTextareaProps, "textarea">(
   (props, ref) => {
     const { getTextareaProps } = useEditableContext()
     const styles = useStyles()
 
-    const textareaProps = getTextareaProps(props, ref) as HTMLChakraProps<"textarea">
+    const textareaProps = getTextareaProps(
+      props,
+      ref,
+    ) as HTMLChakraProps<"textarea">
     const _className = cx("chakra-editable__textarea", props.className)
 
     return (
       <chakra.textarea
         {...textareaProps}
         __css={{
-          outline: 0,
           ...commonStyles,
-          ...styles.input,
+          ...styles.textarea,
         }}
         className={_className}
       />

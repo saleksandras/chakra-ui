@@ -259,9 +259,9 @@ export function useEditable(props: UseEditableProps = {}) {
       value,
       onBlur: callAllHandlers(props.onBlur, onBlur),
       onChange: callAllHandlers(props.onChange, onChange),
-      onKeyDown: callAllHandlers(props.onKeyDown, onKeyDown),
+      // onKeyDown: callAllHandlers(props.onKeyDown, onKeyDown),
     }),
-    [isDisabled, isEditing, onBlur, onChange, onKeyDown, placeholder, value],
+    [isDisabled, isEditing, onBlur, onChange, placeholder, value],
   )
 
   const getEditButtonProps: PropGetter = useCallback(

@@ -38,7 +38,7 @@ it("passes a11y test", async () => {
   )
 })
 
-test("uncontrolled: handles callbacks correctly", async () => {
+test("uncontrolled input: handles callbacks correctly", async () => {
   const onChange = jest.fn()
   const onCancel = jest.fn()
   const onSubmit = jest.fn()
@@ -54,12 +54,10 @@ test("uncontrolled: handles callbacks correctly", async () => {
     >
       <EditablePreview data-testid="preview" />
       <EditableInput data-testid="input" />
-      <EditableTextarea data-testid="textarea" />
     </Editable>,
   )
   const preview = screen.getByTestId("preview")
   const input = screen.getByTestId("input")
-  const textarea = screen.getByTestId("textarea")
 
   // calls `onEdit` when preview is focused
   fireEvent.focus(preview)
@@ -69,15 +67,8 @@ test("uncontrolled: handles callbacks correctly", async () => {
   userEvent.type(input, "World")
   expect(onChange).toHaveBeenCalledWith("World")
 
-  userEvent.type(textarea, "World")
-  expect(onChange).toHaveBeenCalledWith("World")
-
   // calls `onCancel` with previous value when "esc" pressed
   fireEvent.keyDown(input, { key: "Escape" })
-  expect(onCancel).toHaveBeenCalledWith("Hello ")
-
-  // calls `onCancel` with previous value when "esc" pressed
-  fireEvent.keyDown(textarea, { key: "Escape" })
   expect(onCancel).toHaveBeenCalledWith("Hello ")
 
   fireEvent.focus(preview)
@@ -86,18 +77,56 @@ test("uncontrolled: handles callbacks correctly", async () => {
   userEvent.type(input, "World")
   expect(onChange).toHaveBeenCalledWith("World")
 
-  userEvent.type(textarea, "World")
-  expect(onChange).toHaveBeenCalledWith("World")
-
   // calls `onSubmit` with previous value when "enter" pressed after cancelling
   fireEvent.keyDown(input, { key: "Enter" })
   expect(onSubmit).toHaveBeenCalledWith("Hello World")
-
-  fireEvent.keyDown(textarea, { key: "Enter" })
-  expect(onSubmit).not.toHaveBeenCalledWith("Hello World")
 })
 
-test("controlled: handles callbacks correctly", () => {
+test("uncontrolled textarea: handles callbacks correctly", async () => {
+  const onChange = jest.fn()
+  const onCancel = jest.fn()
+  const onSubmit = jest.fn()
+  const onEdit = jest.fn()
+
+  render(
+    <Editable
+      onChange={onChange}
+      onCancel={onCancel}
+      onSubmit={onSubmit}
+      onEdit={onEdit}
+      defaultValue="Hello "
+    >
+      <EditablePreview data-testid="preview" />
+      <EditableTextarea data-testid="textarea" />
+    </Editable>,
+  )
+  const preview = screen.getByTestId("preview")
+  const textarea = screen.getByTestId("textarea")
+
+  // calls `onEdit` when preview is focused
+  fireEvent.focus(preview)
+  expect(onEdit).toHaveBeenCalled()
+
+  // calls `onChange` with input on change
+  userEvent.type(textarea, "World")
+  expect(onChange).toHaveBeenCalledWith("Hello World")
+
+  // calls `onCancel` with previous value when "esc" pressed
+  fireEvent.keyDown(textarea, { key: "Escape" })
+  expect(onCancel).toHaveBeenCalledWith("Hello ")
+
+  fireEvent.focus(preview)
+
+  // calls `onChange` with input on change
+  userEvent.type(textarea, "World")
+  expect(onChange).toHaveBeenCalledWith("Hello World")
+
+  // calls `onSubmit` with previous value when "enter" pressed after cancelling
+  fireEvent.keyDown(textarea, { key: "Enter" })
+  expect(onSubmit).toHaveBeenCalledWith("Hello World")
+})
+
+test("controlled input: handles callbacks correctly", () => {
   const onChange = jest.fn()
   const onCancel = jest.fn()
   const onSubmit = jest.fn()
@@ -118,7 +147,6 @@ test("controlled: handles callbacks correctly", () => {
       >
         <EditablePreview data-testid="preview" />
         <EditableInput data-testid="input" />
-        <EditableTextarea data-testid="textarea" />
       </Editable>
     )
   }
@@ -126,7 +154,6 @@ test("controlled: handles callbacks correctly", () => {
   render(<Component />)
   const preview = screen.getByTestId("preview")
   const input = screen.getByTestId("input")
-  const textarea = screen.getByTestId("textarea")
 
   // calls `onEdit` when preview is focused
   fireEvent.focus(preview)
@@ -138,20 +165,11 @@ test("controlled: handles callbacks correctly", () => {
   userEvent.type(input, "World")
   expect(onChange).toHaveBeenCalledWith("World")
 
-  userEvent.type(textarea, "World")
-  expect(onChange).toHaveBeenCalledWith("World")
-
   // calls `onSubmit` with `value`
   fireEvent.keyDown(input, { key: "Enter" })
   expect(onSubmit).toHaveBeenCalledWith("World")
 
-  fireEvent.keyDown(textarea, { key: "Enter" })
-  expect(onSubmit).toHaveBeenCalledWith("World")
-
   expect(input).not.toBeVisible()
-  fireEvent.focus(preview)
-
-  expect(textarea).not.toBeVisible()
   fireEvent.focus(preview)
 
   // update the input value
@@ -162,6 +180,53 @@ test("controlled: handles callbacks correctly", () => {
 
   // calls `onCancel` with previous `value`
   expect(onSubmit).toHaveBeenCalledWith("World")
+})
+
+test("controlled textarea: handles callbacks correctly", () => {
+  const onChange = jest.fn()
+  const onCancel = jest.fn()
+  const onSubmit = jest.fn()
+  const onEdit = jest.fn()
+
+  const Component = () => {
+    const [value, setValue] = React.useState("Hello ")
+    return (
+      <Editable
+        onChange={(val) => {
+          setValue(val)
+          onChange(val)
+        }}
+        onCancel={onCancel}
+        onSubmit={onSubmit}
+        onEdit={onEdit}
+        value={value}
+      >
+        <EditablePreview data-testid="preview" />
+        <EditableTextarea data-testid="textarea" />
+      </Editable>
+    )
+  }
+
+  render(<Component />)
+  const preview = screen.getByTestId("preview")
+  const textarea = screen.getByTestId("textarea")
+
+  // calls `onEdit` when preview is focused
+  fireEvent.focus(preview)
+  expect(onEdit).toHaveBeenCalled()
+
+  // calls `onChange` with new input on change
+  // since we calld `focus(..)` first, editable will focus and select the text
+  // typing will clear the values in input and add the next text.
+  userEvent.type(textarea, "World")
+  expect(onChange).toHaveBeenCalledWith("Hello World")
+
+  // calls `onSubmit` with `value`
+  fireEvent.keyDown(textarea, { key: "Enter" })
+  expect(onSubmit).toHaveBeenCalledWith("Hello World")
+
+  expect(textarea).not.toBeVisible()
+  fireEvent.focus(preview)
 
   // update the input value
   userEvent.type(textarea, "Rasengan")
@@ -170,7 +235,7 @@ test("controlled: handles callbacks correctly", () => {
   fireEvent.keyDown(textarea, { key: "Escape" })
 
   // calls `onCancel` with previous `value`
-  expect(onSubmit).toHaveBeenCalledWith("World")
+  expect(onSubmit).toHaveBeenCalledWith("Hello World")
 })
 
 test("handles preview and input callbacks", () => {

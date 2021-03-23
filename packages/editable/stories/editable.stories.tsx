@@ -4,7 +4,9 @@ import { useEditable } from "../src"
 import {
   Editable,
   EditableInput,
+  EditableTextarea,
   EditablePreview,
+  EditableTextarePreview,
   useEditableControls,
 } from "../src/editable"
 
@@ -91,6 +93,22 @@ export const Basic = () => (
   >
     <EditablePreview />
     <EditableInput />
+    <EditableControls />
+  </Editable>
+)
+
+export const BasicTextarea = () => (
+  <Editable
+    size="lg"
+    placeholder="A sample placeholder"
+    defaultValue="This is a large textarea"
+    fontSize="xl"
+    isPreviewFocusable={false}
+    submitOnBlur={false}
+    onChange={console.log}
+  >
+    <EditableTextarePreview />
+    <EditableTextarea />
     <EditableControls />
   </Editable>
 )
